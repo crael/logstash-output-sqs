@@ -156,7 +156,7 @@ class LogStash::Outputs::SQS < LogStash::Outputs::Base
       bytes += encoded.bytesize
       if @queue.include? ".fifo"
         @message_deduplication_id = SecureRandom.uuid if @message_deduplication_id.nil? || @message_deduplication_id.empty?
-        entries.push(:id => index.to_s, :message_body => encoded, :message_group_id => @message_group_id, :message_deduplication_id => @message_deduplication_id)
+        entries.push(:id => index.to_s, :message_body => encoded, :message_group_id => @message_group_id, :message_deduplication_id => event.sprintf(@message_deduplication_id))
       else
         entries.push(:id => index.to_s, :message_body => encoded)
       end
@@ -178,7 +178,7 @@ class LogStash::Outputs::SQS < LogStash::Outputs::Base
       @logger.debug("Publishing one message to SQS", :queue_url => @queue_url, :event => event)
       if @queue.include? ".fifo"
         @message_deduplication_id = SecureRandom.uuid if @message_deduplication_id.nil? || @message_deduplication_id.empty?
-        @sqs.send_message(:queue_url => @queue_url, :message_body => encoded, :message_group_id => @message_group_id, :message_deduplication_id => @message_deduplication_id)
+        @sqs.send_message(:queue_url => @queue_url, :message_body => encoded, :message_group_id => event.sprintf(@message_group_id), :message_deduplication_id => event.sprintf(@message_deduplication_id))
       else
         @sqs.send_message(:queue_url => @queue_url, :message_body => encoded)
       end
